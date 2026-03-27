@@ -1,79 +1,7 @@
-<!DOCTYPE html>
-
-<html lang="cs">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Požadavek nastavení</title>
-
-<style>
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-margin:0;
-}
-
-.panel{
-background:#1e293b;
-padding:30px;
-border-radius:15px;
-width:320px;
-}
-
-input{
-width:100%;
-padding:12px;
-margin-bottom:10px;
-border-radius:8px;
-border:none;
-font-size:16px;
-}
-
-button{
-width:100%;
-padding:14px;
-background:#22c55e;
-border:none;
-border-radius:10px;
-font-size:18px;
-color:white;
-cursor:pointer;
-}
-
-.ok{
-margin-top:10px;
-text-align:center;
-color:#22c55e;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="panel">
-
-<h2>Požadavek nastavení</h2>
-
-<input id="kontakt" placeholder="Kontakt">
-<input id="prurez" placeholder="Průřez">
-<input id="jmeno" placeholder="Jméno">
-
-<button onclick="send()">ODESLAT</button>
-
-<div id="ok" class="ok"></div>
-
-</div>
-
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyB3OGNPAZ6NYgttFD4r6h_OLvzeWfGuzzE",
@@ -88,21 +16,53 @@ appId: "1:891198478531:web:8d001502bf14ff7739aa76"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-window.send = function(){
+const LIS_COUNT = 7
+
+let lisy=[]
+let pozadavky=[]
+
+function emptyLis(){
+return {kontakt:"",prurez:"",jmeno:""}
+}
+
+function render(){
+renderLisy()
+renderQueue()
+renderProduction()
+renderProductionQueue()
+}
+
+function saveLisy(){
+set(ref(db,"lisy"),lisy)
+}
+
+function assign(req,lis){
+
+lisy[lis]={...pozadavky[req]}
+
+pozadavky.splice(req,1)
+
+saveLisy()
+
+set(ref(db,"pozadavky"),pozadavky)
+
+blinkLis(lis)
+updateHeader(lis)
+
+}
+
+function addRequest(){
 
 const kontakt=document.getElementById("kontakt").value
 const prurez=document.getElementById("prurez").value
 const jmeno=document.getElementById("jmeno").value
 
-if(!kontakt || !prurez || !jmeno){
-alert("Vyplň všechna pole")
-return
-}
+if(!kontakt) return
 
 push(ref(db,"pozadavky"),{
-kontakt:kontakt,
-prurez:prurez,
-jmeno:jmeno,
+kontakt,
+prurez,
+jmeno,
 time:Date.now()
 })
 
@@ -110,11 +70,118 @@ document.getElementById("kontakt").value=""
 document.getElementById("prurez").value=""
 document.getElementById("jmeno").value=""
 
-document.getElementById("ok").innerText="Požadavek odeslán"
+}
+
+function clearLis(i){
+
+lisy[i]=emptyLis()
+
+saveLisy()
 
 }
 
-</script>
+function updateHeader(i){
 
-</body>
-</html>
+const h=document.getElementById("mainHeader")
+const d=lisy[i]
+
+h.innerText=`${d.kontakt} - ${d.prurez} - ${d.jmeno} - LIS ${i+1}`
+
+h.classList.add("blink")
+
+setTimeout(()=>h.classList.remove("blink"),10000)
+
+}
+
+function blinkLis(i){
+
+const c=document.getElementById("lis"+i)
+const p=document.getElementById("prodLis"+i)
+
+if(c) c.classList.add("blink")
+if(p) p.classList.add("blink")
+
+playTone()
+
+setTimeout(()=>{
+
+if(c) c.classList.remove("blink")
+if(p) p.classList.remove("blink")
+
+},10000)
+
+}
+
+function playTone(){
+
+const ctx=new(window.AudioContext||window.webkitAudioContext)()
+
+function note(f,t,d){
+
+const o=ctx.createOscillator()
+const g=ctx.createGain()
+
+o.frequency.value=f
+o.connect(g)
+g.connect(ctx.destination)
+
+o.start(t)
+o.stop(t+d)
+
+}
+
+let t=ctx.currentTime
+
+note(1000,t,0.2)
+note(700,t+0.3,0.3)
+
+setTimeout(()=>ctx.close(),1000)
+
+}
+
+function setupMode(){
+
+document.getElementById("setupScreen").style.display="block"
+document.getElementById("productionScreen").style.display="none"
+document.getElementById("setupTopbar").style.display="block"
+
+}
+
+function productionMode(){
+
+document.getElementById("setupScreen").style.display="none"
+document.getElementById("productionScreen").style.display="block"
+document.getElementById("setupTopbar").style.display="none"
+
+}
+
+onValue(ref(db,"lisy"),(snapshot)=>{
+
+const data=snapshot.val()
+
+if(data){
+lisy=data
+}else{
+lisy=Array.from({length:LIS_COUNT},()=>emptyLis())
+saveLisy()
+}
+
+render()
+
+})
+
+onValue(ref(db,"pozadavky"),(snapshot)=>{
+
+pozadavky=[]
+
+snapshot.forEach((item)=>{
+
+pozadavky.push(item.val())
+
+})
+
+render()
+
+})
+
+</script>
