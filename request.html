@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Požadavek nastavení</title>
+
+<style>
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.panel{
+background:#1e293b;
+padding:30px;
+border-radius:15px;
+width:320px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-bottom:10px;
+border-radius:8px;
+border:none;
+font-size:16px;
+}
+
+button{
+width:100%;
+padding:14px;
+background:#22c55e;
+border:none;
+border-radius:10px;
+font-size:18px;
+color:white;
+cursor:pointer;
+}
+
+.ok{
+margin-top:10px;
+text-align:center;
+color:#22c55e;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="panel">
+
+<h2>Požadavek nastavení</h2>
+
+<input id="kontakt" placeholder="Kontakt">
+<input id="prurez" placeholder="Průřez">
+<input id="jmeno" placeholder="Jméno">
+
+<button onclick="send()">ODESLAT</button>
+
+<div id="ok" class="ok"></div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyB3OGNPAZ6NYgttFD4r6h_OLvzeWfGuzzE",
+authDomain: "lisy-system.firebaseapp.com",
+databaseURL: "https://lisy-system-default-rtdb.firebaseio.com",
+projectId: "lisy-system",
+storageBucket: "lisy-system.firebasestorage.app",
+messagingSenderId: "891198478531",
+appId: "1:891198478531:web:8d001502bf14ff7739aa76"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.send = function(){
+
+const kontakt=document.getElementById("kontakt").value
+const prurez=document.getElementById("prurez").value
+const jmeno=document.getElementById("jmeno").value
+
+if(!kontakt || !prurez || !jmeno){
+alert("Vyplň všechna pole")
+return
+}
+
+push(ref(db,"pozadavky"),{
+kontakt:kontakt,
+prurez:prurez,
+jmeno:jmeno,
+time:Date.now()
+})
+
+document.getElementById("kontakt").value=""
+document.getElementById("prurez").value=""
+document.getElementById("jmeno").value=""
+
+document.getElementById("ok").innerText="Požadavek odeslán"
+
+}
+
+</script>
+
+</body>
+</html>
