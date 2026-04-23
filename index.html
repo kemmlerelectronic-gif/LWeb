@@ -2,471 +2,442 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KemmSoft - Hybrid Výroba v10.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>KemmSoft Hybrid v17.7</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-  :root {
-    --kemm-blue: #0055A4;
-    --kemm-blue-dark: #003D78;
-    --kemm-blue-light: #E6F0F9;
-  }
-  
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: #f8fafc;
-  }
-
-  .mobile-input {
-    font-size: 16px !important;
-    min-height: 48px;
-    border-radius: 12px;
-  }
-
-  .op-checkbox:checked + label {
-    background-color: var(--kemm-blue);
-    color: white;
-    border-color: var(--kemm-blue);
-  }
-
-  .admin-table-container {
-    max-height: calc(100vh - 320px);
-    overflow: auto;
-  }
-
-  .tab-active {
-    background: var(--kemm-blue);
-    color: white;
-  }
-
-  /* Přidáno pro lepší čitelnost času */
-  .timestamp-tag {
-    font-size: 10px;
-    color: #94a3b8;
-    display: block;
-  }
+    :root { --primary: #0055A4; --bg: #f8fafc; }
+    body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: #1e293b; }
+    .mobile-input { font-size: 16px !important; min-height: 48px; border-radius: 12px; }
+    .op-checkbox:checked + label { background-color: var(--primary); color: white; border-color: var(--primary); }
+    .tab-active { background: var(--primary); color: white; }
+    .glass-card { background: white; border-radius: 2rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+    .admin-table-container { max-height: calc(100vh - 380px); overflow: auto; border-radius: 12px; }
+    .timestamp-tag { font-size: 10px; color: #94a3b8; display: block; font-weight: normal; }
+    .badge-eff { padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 12px; display: inline-block; min-width: 50px; text-align: center; }
+    
+    .eff-high { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .eff-mid { background: #fef9c3; color: #a16207; border: 1px solid #fef08a; }
+    .eff-low { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .eff-none { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; font-size: 10px; font-style: italic; padding: 2px 6px; border-radius: 4px; }
 </style>
 </head>
 <body>
 
-  <header class="bg-white border-b sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-700 shadow-lg">
-          <i class="fa-solid fa-industry text-white text-xl"></i>
+<header class="bg-white border-b sticky top-0 z-50 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-700 shadow-lg text-white">
+                <i class="fa-solid fa-industry text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">KemmSoft</h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Efficiency Fixed v17.7</p>
+            </div>
         </div>
-        <div>
-          <h1 class="text-lg font-bold text-gray-900">KemmSoft</h1>
-          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Production System v10.1</p>
-        </div>
-      </div>
-      <button id="adminBtn" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-bold hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2">
-        <i class="fa-solid fa-lock"></i> <span id="adminBtnText">Admin</span>
-      </button>
+        <button id="adminBtn" class="px-4 py-2 rounded-lg bg-gray-100 font-bold flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all">
+            <i class="fa-solid fa-lock"></i> <span id="adminBtnText">Admin</span>
+        </button>
     </div>
-  </header>
+</header>
 
-  <main class="max-w-7xl mx-auto">
+<main class="max-w-7xl mx-auto p-4">
     
-    <div id="operatorView" class="p-4 max-w-md mx-auto">
-      <div class="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <i class="fa-solid fa-plus-circle text-blue-600"></i> Nový záznam
-        </h2>
-
-        <form id="recordForm" class="space-y-4">
-          <div>
-            <label class="text-xs font-bold text-gray-500 uppercase ml-1">Operátor</label>
-            <input type="text" id="operator" placeholder="Jméno nebo kód" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input">
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Číslo výroby</label>
-              <input type="text" id="vyroba" placeholder="000000" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input">
+    <div id="operatorView" class="max-w-md mx-auto space-y-6">
+        <div class="glass-card p-6 border border-gray-100">
+            <div class="flex p-1 bg-gray-100 rounded-2xl mb-6">
+                <button onclick="setMode('start')" id="mBtnStart" class="flex-1 py-3 rounded-xl font-bold text-sm tab-active transition-all text-center uppercase tracking-tight">Zahájit práci</button>
+                <button onclick="setMode('stop')" id="mBtnStop" class="flex-1 py-3 rounded-xl font-bold text-sm text-gray-500 transition-all text-center uppercase tracking-tight">Ukončit práci</button>
             </div>
-            <div>
-              <label class="text-xs font-bold text-gray-500 uppercase ml-1">Oddělení</label>
-              <select id="oddeleni" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input bg-white">
-                <option value="Svobodová">Svobodová</option>
-                <option value="Beranová">Beranová</option>
-                <option value="Veselá.jn">Veselá.jn</option>
-                <option value="Tumová">Tumová</option>
-                <option value="Hořejší">Hořejší</option>
-                <option value="Nykodýmová">Nykodýmová</option>
-              </select>
-            </div>
-          </div>
 
-          <div>
-            <label class="text-xs font-bold text-gray-500 uppercase ml-1">Operace</label>
-            <div class="grid grid-cols-2 gap-2 mt-1" id="operaceGrid"></div>
-          </div>
+            <form id="mainForm" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-400 uppercase ml-1">Jméno operátora</label>
+                    <input type="text" id="operator" placeholder="Tvé jméno" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input font-bold uppercase">
+                </div>
 
-          <div class="grid grid-cols-2 gap-3 bg-blue-50 p-3 rounded-2xl">
-            <div>
-              <label class="text-[10px] font-bold text-blue-600 uppercase">Čas od</label>
-              <input type="time" id="casOd" class="w-full px-3 py-2 rounded-xl border-none mobile-input">
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-blue-600 uppercase">Čas do</label>
-              <input type="time" id="casDo" class="w-full px-3 py-2 rounded-xl border-none mobile-input">
-            </div>
-          </div>
+                <div id="secStart" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Číslo výroby (Zakázka)</label>
+                            <input type="text" id="vyroba" placeholder="Pro normu" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input font-bold uppercase">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Oddělení</label>
+                            <select id="oddeleni" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input bg-white font-bold">
+                                <option value="Svobodová">Svobodová</option>
+                                <option value="Beranová">Beranová</option>
+                                <option value="Veselá.jn">Veselá.jn</option>
+                                <option value="Tumová">Tumová</option>
+                                <option value="Hořejší">Hořejší</option>
+                                <option value="Nykodýmová">Nykodýmová</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Výrobní objednávka <small class="text-gray-300">(Nepovinné)</small></label>
+                        <input type="text" id="v_objednavka" placeholder="Doplňkový údaj" class="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white outline-none mobile-input font-bold uppercase">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-400 uppercase ml-1">Operace</label>
+                        <div class="grid grid-cols-2 gap-2 mt-1" id="opsGrid"></div>
+                    </div>
+                </div>
 
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-xs font-bold text-green-600 uppercase ml-1">Kusy OK</label>
-              <input type="number" id="kusyOK" placeholder="0" class="w-full px-4 py-3 bg-green-50 border-2 border-transparent rounded-2xl text-green-700 font-bold mobile-input">
-            </div>
-            <div>
-              <label class="text-xs font-bold text-red-600 uppercase ml-1">Kusy NOK</label>
-              <input type="number" id="kusyNOK" placeholder="0" class="w-full px-4 py-3 bg-red-50 border-2 border-transparent rounded-2xl text-red-700 font-bold mobile-input">
-            </div>
-          </div>
+                <div id="secStop" class="hidden space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-green-600 uppercase ml-1">Kusy OK</label>
+                            <input type="number" id="kusyOK" placeholder="0" class="w-full px-4 py-3 bg-green-50 border-transparent rounded-2xl text-green-700 font-bold mobile-input">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-red-600 uppercase ml-1">Kusy NOK</label>
+                            <input type="number" id="kusyNOK" placeholder="0" class="w-full px-4 py-3 bg-red-50 border-transparent rounded-2xl text-red-700 font-bold mobile-input">
+                        </div>
+                    </div>
+                </div>
 
-          <button type="submit" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all">
-            Uložit záznam
-          </button>
-        </form>
-      </div>
+                <button type="submit" id="actionBtn" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-all mt-2 uppercase">Potvrdit akci</button>
+            </form>
+        </div>
     </div>
 
-    <div id="adminView" class="hidden p-4">
-      <div class="bg-white rounded-2xl shadow-xl overflow-hidden border">
-        
-        <div class="flex border-b bg-gray-50">
-          <button class="admin-tab flex-1 py-4 px-4 font-bold text-sm transition-all tab-active" data-tab="vsechny">Všechny záznamy</button>
-          <button class="admin-tab flex-1 py-4 px-4 font-bold text-sm transition-all text-gray-500" data-tab="osobni">Osobní karty</button>
-          <button class="admin-tab flex-1 py-4 px-4 font-bold text-sm transition-all text-gray-500" data-tab="export">Export & Správa</button>
-        </div>
-
-        <div id="tab-vsechny" class="admin-tab-content p-6">
-          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6">
-            <input type="date" id="filterDatumOd" class="px-3 py-2 border rounded-lg text-sm">
-            <input type="date" id="filterDatumDo" class="px-3 py-2 border rounded-lg text-sm">
-            <select id="filterOddeleni" class="px-3 py-2 border rounded-lg text-sm bg-white">
-              <option value="">Všechna oddělení</option>
-              <option value="Svobodová">Svobodová</option>
-              <option value="Beranová">Beranová</option>
-              <option value="Veselá.jn">Veselá.jn</option>
-              <option value="Tumová">Tumová</option>
-              <option value="Hořejší">Hořejší</option>
-              <option value="Nykodýmová">Nykodýmová</option>
-            </select>
-            <input type="text" id="filterOperator" class="px-3 py-2 border rounded-lg text-sm" placeholder="Hledat operátora...">
-            <input type="text" id="filterVyroba" class="px-3 py-2 border rounded-lg text-sm" placeholder="Číslo výroby...">
-          </div>
-
-          <div class="admin-table-container border rounded-xl">
-            <table class="w-full text-left border-collapse">
-              <thead class="bg-gray-100 sticky top-0 z-10">
-                <tr>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Datum a Čas zadání</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Operátor</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Oddělení</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Zakázka</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Operace</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b">Rozmezí</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b text-center">Min (čisté)</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b text-center">OK</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b text-center">NOK</th>
-                  <th class="p-3 text-xs font-bold uppercase border-b text-center">Akce</th>
-                </tr>
-              </thead>
-              <tbody id="recordsTableBody" class="text-sm"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div id="tab-osobni" class="admin-tab-content hidden p-6">
-            <div class="flex gap-4 mb-6">
-                <select id="kartaOperator" class="flex-1 px-4 py-3 border-2 rounded-xl bg-white font-bold"></select>
-                <input type="date" id="kartaDatum" class="px-4 py-3 border-2 rounded-xl font-bold">
+    <div id="adminView" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border">
+            <div class="flex border-b bg-gray-50">
+                <button class="admin-tab flex-1 py-4 font-bold text-[10px] tab-active uppercase" data-tab="vsechny">Přehledy</button>
+                <button class="admin-tab flex-1 py-4 font-bold text-[10px] text-gray-500 uppercase" data-tab="osobni">Karty</button>
+                <button class="admin-tab flex-1 py-4 font-bold text-[10px] text-gray-500 uppercase" data-tab="normy">Normy</button>
+                <button class="admin-tab flex-1 py-4 font-bold text-[10px] text-gray-500 uppercase" data-tab="export">Správa</button>
             </div>
-            <div id="kartaContent" class="hidden">
-                <div id="kartaSumar" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
-                <div class="border rounded-xl overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-blue-50">
+
+            <div id="tab-vsechny" class="admin-tab-content p-4">
+                <div class="admin-table-container border">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-100 sticky top-0 z-10 font-bold uppercase text-gray-500">
                             <tr>
-                                <th class="p-3 text-xs font-bold border-b">Zakázka</th>
-                                <th class="p-3 text-xs font-bold border-b">Operace</th>
-                                <th class="p-3 text-xs font-bold border-b">Čas</th>
-                                <th class="p-3 text-xs font-bold border-b text-center">Výsledek</th>
+                                <th class="p-3 border-b">Čas/Datum</th>
+                                <th class="p-3 border-b">Operátor</th>
+                                <th class="p-3 border-b">Odd./Objednávka</th>
+                                <th class="p-3 border-b">Zakázka/Op.</th>
+                                <th class="p-3 border-b text-center">Efektivita</th>
+                                <th class="p-3 border-b text-center">Výkon</th>
+                                <th class="p-3 border-b"></th>
                             </tr>
                         </thead>
-                        <tbody id="kartaTableBody" class="text-sm"></tbody>
+                        <tbody id="recordsTableBody"></tbody>
                     </table>
                 </div>
             </div>
-        </div>
 
-        <div id="tab-export" class="admin-tab-content hidden p-10 text-center">
-            <button id="exportBtn" class="px-8 py-4 bg-green-600 text-white rounded-2xl font-bold shadow-lg">Stáhnout Excel</button>
-            <div class="mt-10 p-6 bg-red-50 rounded-2xl inline-block">
-                <button id="clearBtn" class="text-red-600 font-bold">Vymazat celou databázi</button>
+            <div id="tab-osobni" class="admin-tab-content hidden p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-gray-400">Operátor</label>
+                        <select id="kartaOperator" class="w-full px-4 py-3 border rounded-xl bg-white font-bold"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-gray-400">Datum</label>
+                        <input type="date" id="kartaDatum" class="w-full px-4 py-3 border rounded-xl font-bold">
+                    </div>
+                </div>
+                <div id="kartaContent" class="hidden space-y-6">
+                    <div id="kartaSumar" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                    <div class="border rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-[10px] uppercase font-bold text-slate-500">
+                                <tr>
+                                    <th class="p-4 border-b">Zakázka</th>
+                                    <th class="p-4 border-b">Operace</th>
+                                    <th class="p-4 border-b text-center">Minuty</th>
+                                    <th class="p-4 border-b text-center">OK/NOK</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kartaTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-normy" class="admin-tab-content hidden p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-6 rounded-2xl border mb-6">
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Číslo výroby</label>
+                        <input type="text" id="norm_vyr" class="w-full p-3 border rounded-xl font-bold uppercase" placeholder="Kód">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Operace</label>
+                        <select id="norm_op" class="w-full p-3 border rounded-xl bg-white font-bold"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold uppercase text-slate-400">Norma (ks/h)</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="norm_ksh" class="w-full p-3 border rounded-xl font-bold text-blue-600" placeholder="0">
+                            <button onclick="saveNorm()" class="bg-blue-600 text-white px-6 rounded-xl font-bold">ULOŽIT</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-table-container border">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-[10px] uppercase text-gray-500">
+                            <tr>
+                                <th class="p-3 border-b">Zakázka</th>
+                                <th class="p-3 border-b">Operace</th>
+                                <th class="p-3 border-b">Norma (ks/h)</th>
+                                <th class="p-3 border-b text-center"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="normsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-export" class="admin-tab-content hidden p-10 text-center space-y-6">
+                <button id="exportBtn" class="px-8 py-4 bg-green-600 text-white rounded-2xl font-bold shadow-lg w-full sm:w-auto uppercase">Stáhnout data do Excelu</button>
+                <div class="pt-10 border-t"><button id="clearBtn" class="text-red-400 text-xs font-bold hover:underline opacity-50">Smazat veškerou historii systému</button></div>
             </div>
         </div>
-      </div>
     </div>
-  </main>
+</main>
 
-  <div id="loginModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[200] p-4">
-    <div class="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
-      <h3 class="text-xl font-bold mb-6">Administrace</h3>
-      <input type="password" id="adminPassword" placeholder="Heslo" class="w-full px-4 py-4 bg-gray-100 rounded-2xl border-none text-center text-2xl tracking-widest mb-6 outline-none focus:ring-2 focus:ring-blue-600">
-      <div class="flex gap-2">
-        <button id="loginCancel" class="flex-1 py-3 font-bold text-gray-400">Zrušit</button>
-        <button id="loginSubmit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Vstoupit</button>
-      </div>
+<div id="loginModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-[200] p-4">
+    <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+        <h3 class="text-xl font-bold mb-6 text-slate-800 uppercase">Vstup do administrace</h3>
+        <input type="password" id="adminPassword" class="w-full px-4 py-4 bg-gray-100 rounded-2xl text-center text-3xl mb-6 outline-none font-bold">
+        <div class="flex gap-2">
+            <button id="loginCancel" class="flex-1 py-3 font-bold text-gray-400">Zrušit</button>
+            <button id="loginSubmit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold">Vstoupit</button>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-white shadow-2xl hidden z-[100] font-bold"></div>
+<div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-2xl text-white shadow-2xl hidden z-[100] font-bold"></div>
 
 <script>
-  const STORAGE_KEY = 'kemmsoft_zaznamy_v10_1';
-  const OPERATIONS = ['Montáž', 'Montáž kompl.', 'Pájení', 'Odholování', 'Nastřelování', 'Foukání', 'Lisování', 'Cínování', 'Motání'];
-  let isAdminLoggedIn = false;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    initApp();
-    renderOperations();
-    loadRecordsTable();
-    updateOperatorSelect();
-    document.getElementById('kartaDatum').value = new Date().toISOString().split('T')[0];
-  });
-
-  function initApp() {
-    document.getElementById('adminBtn').onclick = () => {
-        if(isAdminLoggedIn) toggleAdmin();
-        else document.getElementById('loginModal').style.display = 'flex';
-    };
-
-    document.getElementById('loginCancel').onclick = () => document.getElementById('loginModal').style.display = 'none';
+    const STORAGE_KEY = 'kemm_v17_7_db';
+    const ACTIVE_KEY = 'kemm_v17_7_active';
+    const NORMS_KEY = 'kemm_v17_7_norms';
+    const OPERATIONS = ['Montáž', 'M. kompl.', 'Pájení', 'Odholování', 'Nastřelování', 'Foukání', 'Lisování', 'Cínování', 'Motání'];
     
-    document.getElementById('loginSubmit').onclick = () => {
-        if(document.getElementById('adminPassword').value === 'kemm2026') {
-            isAdminLoggedIn = true;
-            document.getElementById('loginModal').style.display = 'none';
-            toggleAdmin();
-        } else {
-            showToast('Špatné heslo', 'error');
-        }
-    };
+    let currentMode = 'start';
+    let isAdminLoggedIn = false;
 
-    document.querySelectorAll('.admin-tab').forEach(tab => {
-        tab.onclick = () => {
-            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('tab-active', 'text-white'));
-            document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
-            tab.classList.add('tab-active');
-            document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+    document.addEventListener('DOMContentLoaded', () => {
+        renderOperations();
+        loadRecordsTable();
+        loadNormsTable();
+        updateOperatorSelect();
+        document.getElementById('kartaDatum').value = new Date().toISOString().split('T')[0];
+        
+        document.getElementById('adminBtn').onclick = () => {
+            if(isAdminLoggedIn) toggleAdmin();
+            else document.getElementById('loginModal').style.display = 'flex';
         };
+        document.getElementById('loginSubmit').onclick = () => {
+            if(document.getElementById('adminPassword').value === 'kemm2026') {
+                isAdminLoggedIn = true; document.getElementById('loginModal').style.display = 'none'; toggleAdmin();
+            } else { showToast('Špatné heslo', 'error'); }
+        };
+        document.getElementById('loginCancel').onclick = () => document.getElementById('loginModal').style.display = 'none';
+
+        document.querySelectorAll('.admin-tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.admin-tab').forEach(t => t.className = "admin-tab flex-1 py-4 font-bold text-[10px] text-gray-500 uppercase");
+                document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.add('hidden'));
+                tab.className = "admin-tab flex-1 py-4 font-bold text-[10px] tab-active uppercase";
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.remove('hidden');
+                if(tab.dataset.tab === 'osobni') loadKarta();
+            };
+        });
+
+        document.getElementById('mainForm').onsubmit = (e) => { e.preventDefault(); currentMode === 'start' ? handleStart() : handleStop(); };
+        document.getElementById('kartaOperator').onchange = loadKarta;
+        document.getElementById('kartaDatum').onchange = loadKarta;
+        document.getElementById('exportBtn').onclick = exportToExcel;
+        document.getElementById('clearBtn').onclick = () => { if(confirm('Smazat vše?')) { localStorage.clear(); location.reload(); } };
     });
 
-    document.getElementById('recordForm').onsubmit = (e) => {
-        e.preventDefault();
-        saveRecord();
-    };
-
-    ['filterDatumOd', 'filterDatumDo', 'filterOddeleni', 'filterOperator', 'filterVyroba'].forEach(id => {
-        document.getElementById(id).oninput = loadRecordsTable;
-    });
-
-    document.getElementById('kartaOperator').onchange = loadKarta;
-    document.getElementById('kartaDatum').onchange = loadKarta;
-    document.getElementById('exportBtn').onclick = exportToExcel;
-    document.getElementById('clearBtn').onclick = () => { if(confirm('SMAZAT VŠE?')) { localStorage.setItem(STORAGE_KEY, '[]'); location.reload(); } };
-  }
-
-  function renderOperations() {
-    const grid = document.getElementById('operaceGrid');
-    grid.innerHTML = OPERATIONS.map(op => `
-        <div class="relative">
-            <input type="checkbox" id="op-${op}" value="${op}" class="op-checkbox hidden">
-            <label for="op-${op}" class="flex items-center justify-center p-3 border-2 border-gray-100 rounded-xl text-[10px] font-bold text-gray-600 cursor-pointer transition-all bg-white text-center h-full">
-                ${op}
-            </label>
-        </div>
-    `).join('');
-  }
-
-  function saveRecord() {
-    const operator = document.getElementById('operator').value.trim();
-    const vyroba = document.getElementById('vyroba').value.trim();
-    const oddeleni = document.getElementById('oddeleni').value;
-    const casOd = document.getElementById('casOd').value;
-    const casDo = document.getElementById('casDo').value;
-    const kusyOK = parseInt(document.getElementById('kusyOK').value) || 0;
-    const kusyNOK = parseInt(document.getElementById('kusyNOK').value) || 0;
-    const operace = Array.from(document.querySelectorAll('.op-checkbox:checked')).map(cb => cb.value);
-
-    if(!operator || !vyroba || !casOd || !casDo || operace.length === 0) {
-        showToast('Vyplňte všechna pole', 'error'); return;
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('mBtnStart').className = mode === 'start' ? "flex-1 py-3 rounded-xl font-bold text-sm tab-active transition-all" : "flex-1 py-3 rounded-xl font-bold text-sm text-gray-500 transition-all";
+        document.getElementById('mBtnStop').className = mode === 'stop' ? "flex-1 py-3 rounded-xl font-bold text-sm tab-active transition-all bg-red-600" : "flex-1 py-3 rounded-xl font-bold text-sm text-gray-500 transition-all";
+        document.getElementById('secStart').classList.toggle('hidden', mode === 'stop');
+        document.getElementById('secStop').classList.toggle('hidden', mode === 'start');
     }
 
-    const [h1, m1] = casOd.split(':').map(Number);
-    const [h2, m2] = casDo.split(':').map(Number);
-    let minuty = (h2 * 60 + m2) - (h1 * 60 + m1);
+    function handleStart() {
+        const op = document.getElementById('operator').value.trim().toUpperCase();
+        const vyr = document.getElementById('vyroba').value.trim().toUpperCase();
+        const obj = document.getElementById('v_objednavka').value.trim().toUpperCase();
+        const odd = document.getElementById('oddeleni').value;
+        const selOp = document.querySelector('.op-checkbox:checked')?.value;
+        if(!op || !vyr || !selOp) return showToast('Chybí jméno, zakázka nebo operace!', 'error');
+        const activeMap = JSON.parse(localStorage.getItem(ACTIVE_KEY) || '{}');
+        if(activeMap[op]) return showToast('Již máš spuštěnou práci!', 'error');
+        activeMap[op] = { vyr, obj, odd, op: selOp, ts: Date.now(), startStr: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) };
+        localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeMap));
+        showToast('🚀 PRÁCE ZAHÁJENA');
+        resetForm();
+    }
+
+    function handleStop() {
+        const op = document.getElementById('operator').value.trim().toUpperCase();
+        const ok = parseInt(document.getElementById('kusyOK').value) || 0;
+        const nok = parseInt(document.getElementById('kusyNOK').value) || 0;
+        const activeMap = JSON.parse(localStorage.getItem(ACTIVE_KEY) || '{}');
+        const task = activeMap[op];
+        if(!task) return showToast('Nemáš nic spuštěno!', 'error');
+        
+        let minuty = Math.max(1, Math.round((Date.now() - task.ts) / 60000));
+        let pauzaOdecet = minuty >= 480 ? 30 : 0;
+        minuty -= pauzaOdecet;
+
+        const record = {
+            id: Date.now(), datum: new Date().toISOString().split('T')[0],
+            operator: op, vyroba: task.vyr, v_obj: task.obj || '-', oddeleni: task.odd, operace: task.op,
+            casOd: task.startStr, casDo: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+            minuty: Number(minuty), kusyOK: Number(ok), kusyNOK: Number(nok)
+        };
+        const db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        db.unshift(record);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        delete activeMap[op];
+        localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeMap));
+        showToast('✅ DATA ULOŽENA');
+        resetForm(); loadRecordsTable(); updateOperatorSelect();
+    }
+
+    function calculateEfficiency(vyr, op, ok, min) {
+        const norms = JSON.parse(localStorage.getItem(NORMS_KEY) || '[]');
+        const norm = norms.find(n => n.vyr.toString().trim().toUpperCase() === vyr.toString().trim().toUpperCase() && n.op === op);
+        const numOK = Number(ok); const numMin = Number(min);
+        if(!norm || isNaN(numOK) || isNaN(numMin) || numMin <= 0) return null;
+        const ksh = Number(norm.ksh); if(isNaN(ksh) || ksh <= 0) return null;
+        const targetForTime = (ksh / 60) * numMin;
+        const eff = Math.round((numOK / targetForTime) * 100);
+        if(isNaN(eff)) return null;
+        let color = "eff-low"; if(eff >= 100) color = "eff-high"; else if(eff >= 80) color = "eff-mid";
+        return { eff, color };
+    }
+
+    function loadRecordsTable() {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        document.getElementById('recordsTableBody').innerHTML = data.map(r => {
+            const effData = calculateEfficiency(r.vyroba, r.operace, r.kusyOK, r.minuty);
+            return `
+            <tr class="hover:bg-gray-50 border-b">
+                <td class="p-3"><b>${new Date(r.datum).toLocaleDateString('cs')}</b><span class="timestamp-tag">${r.casOd}-${r.casDo}</span></td>
+                <td class="p-3 font-bold uppercase text-slate-700">${r.operator}</td>
+                <td class="p-3"><span class="text-[10px] font-bold text-blue-500 uppercase">${r.oddeleni}</span><br><span class="text-[9px] text-gray-400 font-bold">${r.v_obj}</span></td>
+                <td class="p-3"><span class="font-bold">${r.vyroba}</span><br><span class="text-[9px] text-gray-400 uppercase font-bold">${r.operace}</span></td>
+                <td class="p-3 text-center">${effData ? `<span class="badge-eff ${effData.color}">${effData.eff}%</span>` : '<span class="eff-none">Chybí norma</span>'}</td>
+                <td class="p-3 text-center"><b>${r.kusyOK} ks</b><br><span class="text-[10px] text-gray-400">${r.minuty} min</span></td>
+                <td class="p-3 text-center"><button onclick="deleteRec(${r.id})" class="text-gray-300 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function loadKarta() {
+        const op = document.getElementById('kartaOperator').value;
+        const datum = document.getElementById('kartaDatum').value;
+        const cont = document.getElementById('kartaContent');
+        if(!op) return cont.classList.add('hidden');
+        const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').filter(r => r.operator === op && r.datum === datum);
+        if(records.length === 0) return cont.classList.add('hidden');
+        cont.classList.remove('hidden');
+        const s = { min:0, ok:0, nok:0 };
+        records.forEach(r => { s.min += r.minuty; s.ok += r.kusyOK; s.nok += r.kusyNOK; });
+        document.getElementById('kartaSumar').innerHTML = `
+            <div class="bg-blue-600 text-white p-4 rounded-xl text-center shadow-lg"><div class="text-xl font-bold">${s.min}</div><div class="text-[9px] uppercase font-bold opacity-70">Minut</div></div>
+            <div class="bg-green-600 text-white p-4 rounded-xl text-center shadow-lg"><div class="text-xl font-bold">${s.ok}</div><div class="text-[9px] uppercase font-bold opacity-70">Kusy OK</div></div>
+            <div class="bg-red-600 text-white p-4 rounded-xl text-center shadow-lg"><div class="text-xl font-bold">${s.nok}</div><div class="text-[9px] uppercase font-bold opacity-70">Kusy NOK</div></div>
+            <div class="bg-slate-700 text-white p-4 rounded-xl text-center shadow-lg"><div class="text-xl font-bold">${records.length}</div><div class="text-[9px] uppercase font-bold opacity-70">Záznamů</div></div>
+        `;
+        document.getElementById('kartaTableBody').innerHTML = records.map(r => `
+            <tr class="border-b">
+                <td class="p-4"><span class="font-bold text-blue-600">${r.vyroba}</span><br><span class="text-[9px] text-gray-400 font-bold uppercase">Obj: ${r.v_obj}</span></td>
+                <td class="p-4 text-xs font-bold uppercase">${r.operace}</td>
+                <td class="p-4 text-center text-xs font-bold">${r.minuty}</td>
+                <td class="p-4 text-center font-bold text-slate-700">${r.kusyOK} / ${r.kusyNOK}</td>
+            </tr>
+        `).join('');
+    }
+
+    function saveNorm() {
+        const vyr = document.getElementById('norm_vyr').value.trim().toUpperCase();
+        const op = document.getElementById('norm_op').value;
+        const ksh = Number(document.getElementById('norm_ksh').value);
+        if(!vyr || isNaN(ksh) || ksh <= 0) return showToast('Zadej kód a platnou normu!', 'error');
+        let norms = JSON.parse(localStorage.getItem(NORMS_KEY) || '[]');
+        norms = norms.filter(n => !(n.vyr === vyr && n.op === op));
+        norms.unshift({ vyr, op, ksh });
+        localStorage.setItem(NORMS_KEY, JSON.stringify(norms));
+        showToast('Norma uložena');
+        document.getElementById('norm_vyr').value = ''; document.getElementById('norm_ksh').value = '';
+        loadNormsTable(); loadRecordsTable();
+    }
+
+    function loadNormsTable() {
+        const norms = JSON.parse(localStorage.getItem(NORMS_KEY) || '[]');
+        document.getElementById('normsTableBody').innerHTML = norms.map(n => `
+            <tr class="border-b">
+                <td class="p-3 font-bold uppercase">${n.vyr}</td>
+                <td class="p-3 text-[10px] font-bold text-gray-500 uppercase">${n.op}</td>
+                <td class="p-3 font-bold text-blue-600">${n.ksh} ks/h</td>
+                <td class="p-3 text-center"><button onclick="deleteNorm('${n.vyr}', '${n.op}')" class="text-red-200 hover:text-red-500"><i class="fa-solid fa-trash"></i></button></td>
+            </tr>
+        `).join('');
+    }
+
+    function deleteNorm(vyr, op) {
+        let norms = JSON.parse(localStorage.getItem(NORMS_KEY) || '[]');
+        norms = norms.filter(n => !(n.vyr === vyr && n.op === op));
+        localStorage.setItem(NORMS_KEY, JSON.stringify(norms));
+        loadNormsTable(); loadRecordsTable();
+    }
+
+    function renderOperations() {
+        document.getElementById('opsGrid').innerHTML = OPERATIONS.map(op => `
+            <input type="radio" name="op-select" id="op-${op}" value="${op}" class="op-checkbox hidden">
+            <label for="op-${op}" class="flex items-center justify-center p-3 border-2 border-gray-100 rounded-xl text-[10px] font-bold text-gray-600 cursor-pointer bg-white transition-all text-center h-full">${op}</label>
+        `).join('');
+        document.getElementById('norm_op').innerHTML = OPERATIONS.map(op => `<option value="${op}">${op}</option>`).join('');
+    }
+
+    function toggleAdmin() {
+        document.getElementById('adminView').classList.toggle('hidden');
+        document.getElementById('operatorView').classList.toggle('hidden');
+        document.getElementById('adminBtnText').innerText = document.getElementById('adminView').classList.contains('hidden') ? 'Admin' : 'Zpět';
+    }
+
+    function resetForm() {
+        document.getElementById('vyroba').value = ''; document.getElementById('v_objednavka').value = ''; 
+        document.getElementById('kusyOK').value = ''; document.getElementById('kusyNOK').value = '';
+        document.querySelectorAll('input[name="op-select"]').forEach(r => r.checked = false);
+    }
+
+    function showToast(m, t='success') {
+        const toast = document.getElementById('toast'); toast.innerText = m;
+        toast.style.backgroundColor = t === 'success' ? '#16a34a' : '#dc2626';
+        toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    function deleteRec(id) { if(confirm('Smazat?')) { let d = JSON.parse(localStorage.getItem(STORAGE_KEY)); d = d.filter(r => r.id !== id); localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); loadRecordsTable(); updateOperatorSelect(); } }
     
-    if (minuty <= 0) { showToast('Neplatný čas', 'error'); return; }
-
-    // --- LOGIKA AUTOMATICKÉ PAUZY ---
-    let pauzaOdecet = 0;
-    if (minuty >= 480) { // 8 hodin = 480 minut
-        minuty -= 30;
-        pauzaOdecet = 30;
+    function updateOperatorSelect() {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const ops = [...new Set(data.map(r => r.operator))].sort();
+        document.getElementById('kartaOperator').innerHTML = '<option value="">Vyber...</option>' + ops.map(o => `<option value="${o}">${o}</option>`).join('');
     }
 
-    const ted = new Date();
-    const casZadani = ted.getHours().toString().padStart(2, '0') + ':' + ted.getMinutes().toString().padStart(2, '0');
-
-    const record = {
-        id: Date.now(),
-        datum: ted.toISOString().split('T')[0],
-        casZadani: casZadani, // Uložíme čas odeslání
-        operator, vyroba, oddeleni, casOd, casDo,
-        operace: operace.join(', '),
-        minuty, 
-        pauzaOdecet, // Ukládáme pro info, zda byla odečtena pauza
-        kusyOK, kusyNOK
-    };
-
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    data.unshift(record);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-    showToast(pauzaOdecet > 0 ? 'Uloženo (odečtena pauza 30m)' : 'Uloženo!');
-    document.getElementById('recordForm').reset();
-    renderOperations();
-    loadRecordsTable();
-    updateOperatorSelect();
-  }
-
-  function loadRecordsTable() {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const f = {
-        d1: document.getElementById('filterDatumOd').value,
-        d2: document.getElementById('filterDatumDo').value,
-        odd: document.getElementById('filterOddeleni').value,
-        op: document.getElementById('filterOperator').value.toLowerCase(),
-        vyr: document.getElementById('filterVyroba').value.toLowerCase()
-    };
-
-    const filtered = data.filter(r => {
-        if(f.d1 && r.datum < f.d1) return false;
-        if(f.d2 && r.datum > f.d2) return false;
-        if(f.odd && r.oddeleni !== f.odd) return false;
-        if(f.op && !r.operator.toLowerCase().includes(f.op)) return false;
-        if(f.vyr && !r.vyroba.toLowerCase().includes(f.vyr)) return false;
-        return true;
-    });
-
-    const tbody = document.getElementById('recordsTableBody');
-    tbody.innerHTML = filtered.map(r => `
-        <tr class="hover:bg-gray-50 border-b">
-            <td class="p-3">
-                <span class="font-bold">${formatDate(r.datum)}</span>
-                <span class="timestamp-tag"><i class="fa-regular fa-clock"></i> zadáno v ${r.casZadani || '--:--'}</span>
-            </td>
-            <td class="p-3 font-bold">${r.operator}</td>
-            <td class="p-3">${r.oddeleni}</td>
-            <td class="p-3 font-mono text-blue-600">${r.vyroba}</td>
-            <td class="p-3 text-[11px] text-gray-500">${r.operace}</td>
-            <td class="p-3">${r.casOd}-${r.casDo}</td>
-            <td class="p-3 text-center">
-                <span class="font-bold">${r.minuty}</span>
-                ${r.pauzaOdecet > 0 ? '<div class="text-[9px] text-red-500">-30m pauza</div>' : ''}
-            </td>
-            <td class="p-3 text-center font-bold text-green-600">${r.kusyOK}</td>
-            <td class="p-3 text-center font-bold text-red-600">${r.kusyNOK}</td>
-            <td class="p-3 text-center">
-                <button onclick="deleteRecord(${r.id})" class="text-red-300 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        </tr>
-    `).join('');
-  }
-
-  function loadKarta() {
-    const operator = document.getElementById('kartaOperator').value;
-    const datum = document.getElementById('kartaDatum').value;
-    if(!operator) return;
-
-    const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]').filter(r => r.operator === operator && r.datum === datum);
-    const cont = document.getElementById('kartaContent');
-    if(records.length === 0) { cont.classList.add('hidden'); return; }
-    cont.classList.remove('hidden');
-
-    const sum = {
-        min: records.reduce((s, r) => s + r.minuty, 0),
-        ok: records.reduce((s, r) => s + r.kusyOK, 0),
-        nok: records.reduce((s, r) => s + r.kusyNOK, 0),
-        jobs: new Set(records.map(r => r.vyroba)).size
-    };
-
-    document.getElementById('kartaSumar').innerHTML = `
-        <div class="bg-blue-600 text-white p-4 rounded-xl text-center">
-            <div class="text-2xl font-black">${sum.min}</div><div class="text-[10px] uppercase">Minuty celkem</div>
-        </div>
-        <div class="bg-green-600 text-white p-4 rounded-xl text-center">
-            <div class="text-2xl font-black">${sum.ok}</div><div class="text-[10px] uppercase">Kusy OK</div>
-        </div>
-        <div class="bg-red-600 text-white p-4 rounded-xl text-center">
-            <div class="text-2xl font-black">${sum.nok}</div><div class="text-[10px] uppercase">Kusy NOK</div>
-        </div>
-        <div class="bg-gray-800 text-white p-4 rounded-xl text-center">
-            <div class="text-2xl font-black">${sum.jobs}</div><div class="text-[10px] uppercase">Zakázek</div>
-        </div>
-    `;
-
-    document.getElementById('kartaTableBody').innerHTML = records.map(r => `
-        <tr class="border-b">
-            <td class="p-3 font-bold">${r.vyroba}</td>
-            <td class="p-3 text-[11px]">${r.operace}</td>
-            <td class="p-3">${r.casOd}-${r.casDo} (${r.minuty}m)</td>
-            <td class="p-3 text-center"><span class="text-green-600 font-bold">${r.kusyOK}</span> / <span class="text-red-600 font-bold">${r.kusyNOK}</span></td>
-        </tr>
-    `).join('');
-  }
-
-  function toggleAdmin() {
-    const adView = document.getElementById('adminView');
-    const opView = document.getElementById('operatorView');
-    const btn = document.getElementById('adminBtnText');
-    if(adView.classList.contains('hidden')) {
-        adView.classList.remove('hidden'); opView.classList.add('hidden'); btn.innerText = 'Zpět'; loadRecordsTable();
-    } else {
-        adView.classList.add('hidden'); opView.classList.remove('hidden'); btn.innerText = 'Admin';
+    function exportToExcel() {
+        const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        if(d.length === 0) return showToast('Žádná data', 'error');
+        const ws = XLSX.utils.json_to_sheet(d); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Produkce");
+        XLSX.writeFile(wb, `KemmSoft_Export.xlsx`);
     }
-  }
-
-  function updateOperatorSelect() {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const ops = [...new Set(data.map(r => r.operator))].sort();
-    document.getElementById('kartaOperator').innerHTML = '<option value="">Vyberte operátora...</option>' + ops.map(o => `<option value="${o}">${o}</option>`).join('');
-  }
-
-  function deleteRecord(id) { if(confirm('Smazat?')) { let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); data = data.filter(r => r.id !== id); localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); loadRecordsTable(); } }
-
-  function showToast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.innerText = msg; t.style.backgroundColor = type === 'success' ? '#16a34a' : '#dc2626';
-    t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000);
-  }
-
-  function formatDate(d) { return new Date(d).toLocaleDateString('cs-CZ'); }
-
-  function exportToExcel() {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if(data.length === 0) return showToast('Prázdno', 'error');
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, `KemmSoft_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
-  }
 </script>
 </body>
 </html>
